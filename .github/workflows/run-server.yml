@@ -112,14 +112,10 @@ jobs:
           # the Action cleanly, without errors
           echo 'alias quit="pkill tmate"' >> ~/.bashrc
       
-      # Make CTF files from the repo available, symlink them to the ~/ctf directory
+      # Make CTF files from the repo available in the ~/ctf directory
       - uses: actions/checkout@v2
-      - name: Symlink repository
-        run: |
-          ln \
-            --symbolic \
-            /home/runner/work/ctf-collab/ctf-collab \
-            ~/ctf
+        with:
+          path: /home/runner/ctf
           
       - name: Run tmate; send login info via a webhook if applicable
         run: |
