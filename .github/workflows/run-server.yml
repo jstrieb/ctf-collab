@@ -66,20 +66,20 @@ jobs:
           python3 -m pip install --upgrade pwntools
           python3 -m pip install --upgrade ciphey
 
-      # TODO: Push dotfiles to the ctf-collab repo itself
-      - name: Set up my dotfiles
+      # Make CTF files from the repo available in the ~/ctf directory
+      - uses: actions/checkout@v2
+      - name: Move checked out repository to ~/ctf
         run: |
           cd
-          git clone https://github.com/jstrieb/dotfiles.git
-          cd dotfiles
+          mv "$GITHUB_WORKSPACE" ~/ctf
 
-          # Different versions of tmux escape backslashes in config files
-          # differently :(
-          sed -i 's/bind \\\\/bind \\/' .tmux.conf
+          # Re-create the workspace directory, otherwise subsequent steps start
+          # in a folder that doesn't exist and immediately fail
+          mkdir --parents "$GITHUB_WORKSPACE"
 
-          sed -i "s/INSTALL_PACKAGES=true/INSTALL_PACKAGES=false/g" install.sh
-          sed -i "s/CONFIGURE_GIT=true/CONFIGURE_GIT=false/g" install.sh
-
+      - name: Install dotfiles
+        run: |
+          cd ~/ctf/dotfiles
           chmod +x install.sh
           bash install.sh
           cp ~/.tmux.conf ~/.tmate.conf
@@ -91,12 +91,12 @@ jobs:
           # xterm is required for a tmux/tmate tty. Included here rather than
           # the install section above to make clear that this is a specific
           # requirement for running tmate on this platform, even though other
-          # stuff probably uses it.
+          # stuff probably uses xterm anyway.
           sudo apt-get --yes install xterm
 
           # tmate requires ssh keys, but it doesn't matter what they are. This
           # generates them without a passcode and puts them in the usual
-          # location. The flags are the minimum such that ther is no
+          # location. The flags are the minimum such that there is no
           # interactive prompt.
           ssh-keygen -f ~/.ssh/id_rsa -N ""
 
@@ -113,27 +113,16 @@ jobs:
           # the Action cleanly, without errors
           echo 'alias quit="pkill tmate"' >> ~/.bashrc
 
-      # Make CTF files from the repo available in the ~/ctf directory
-      - uses: actions/checkout@v2
-      - name: Move checked out repository to ~/ctf
-        run: |
-          cd
-          mv "$GITHUB_WORKSPACE" ~/ctf
-
-          # Re-create the workspace directory, otherwise subsequent steps start
-          # in a folder that doesn't exist and immediately fail
-          mkdir --parents "$GITHUB_WORKSPACE"
-
+        # Run tmate in the background from the ctf repository folder, but give
+        # it some time to start. Done this way so we can both see tmate login
+        # info, and send the info to the webhook, both of which can only be
+        # done after it starts up.
       - name: Run tmate; send login info via a webhook if applicable
         run: |
           # Required to use fg for jobs sent to the background - for some
           # reason bash doesn't have job control enabled by default???
           set -m
 
-          # Run tmate in the background from the ctf repository folder, but
-          # give it some time to start. Done this way so we can both see tmate
-          # login info, and send the info to the webhook, both of which can
-          # only be done after it starts up.
           cd ~/ctf
           ~/tmate-2.4.0-static-linux-amd64/tmate -F > ~/tmate_info.txt &
           sleep 5

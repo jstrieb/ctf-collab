@@ -1,0 +1,9 @@
+[user]
+  name = ctf-user
+  email = ctf-user@example.com
+[alias]
+  adog = log --all --decorate --oneline --graph
+[checkout]
+  defaultRemote = origin
+[init]
+  defaultBranch = main
