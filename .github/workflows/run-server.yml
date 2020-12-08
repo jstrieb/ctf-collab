@@ -1,7 +1,7 @@
 # This GitHub Actions workflow installs several useful tools for CTFs, and
 # starts a server so the user can connect and work in the virtual environment.
 # This is a pretty safe environment for running random binaries from CTFs, and
-# you mostly don't have to worry about fucking anything up sicne it starts
+# you mostly don't have to worry about fucking anything up since it starts
 # fresh every time.
 
 # Created by Jacob Strieb
@@ -10,14 +10,14 @@
 name: Run Collaborative CTF Environment
 
 # Only run when manually triggered
-on: 
+on:
   workflow_dispatch:
     inputs:
       # tmate login info is sent to this webhook if it is entered. This is
       # useful because sometimes the GitHub Actions view does not correctly
-      # show the printed output Action while it is running, and if you can't
-      # see the tmate URL, you can't ssh in. I usually use webhook.site to
-      # easily create a temporary receiving webhook
+      # show the printed output from the Action while it is running, and if you
+      # can't see the tmate URL, you can't ssh in. I usually use webhook.site
+      # to easily create a temporary receiving webhook
       webhook_url:
         description: Webhook URL (e.g. from https://webhook.site)
         required: false
@@ -29,11 +29,11 @@ jobs:
     steps:
       - name: Install (and upgrade) packages
         run: |
-          sudo apt-get update 
+          sudo apt-get update
           # NOTE: upgrading takes way too long, and doesn't seem totally
           # necessary; hence it has been commented out
           # sudo apt-get --yes upgrade
-          
+
           # NOTE: many of these are already installed; included for posterity
           # TODO: add other packages for CTF stuff
           PACKAGES=(
@@ -59,30 +59,31 @@ jobs:
             valgrind
           )
           sudo apt-get --yes install ${PACKAGES[@]}
-          
+
           python -m pip install --upgrade pip
           python3 -m pip install --upgrade pip
           python3 -m pip install --upgrade setuptools
           python3 -m pip install --upgrade pwntools
           python3 -m pip install --upgrade ciphey
-          
+
+      # TODO: Push dotfiles to the ctf-collab repo itself
       - name: Set up my dotfiles
         run: |
           cd
           git clone https://github.com/jstrieb/dotfiles.git
           cd dotfiles
-          
+
           # Different versions of tmux escape backslashes in config files
           # differently :(
           sed -i 's/bind \\\\/bind \\/' .tmux.conf
-          
+
           sed -i "s/INSTALL_PACKAGES=true/INSTALL_PACKAGES=false/g" install.sh
           sed -i "s/CONFIGURE_GIT=true/CONFIGURE_GIT=false/g" install.sh
-          
+
           chmod +x install.sh
           bash install.sh
           cp ~/.tmux.conf ~/.tmate.conf
-          
+
       # Install tmate this way instead of using aptitude because the latest
       # version doesn't yet seem available
       - name: Install tmate (reverse shell)
@@ -92,13 +93,13 @@ jobs:
           # requirement for running tmate on this platform, even though other
           # stuff probably uses it.
           sudo apt-get --yes install xterm
-          
+
           # tmate requires ssh keys, but it doesn't matter what they are. This
           # generates them without a passcode and puts them in the usual
           # location. The flags are the minimum such that ther is no
           # interactive prompt.
           ssh-keygen -f ~/.ssh/id_rsa -N ""
-          
+
           cd
           wget \
             --output-document "tmate.tar.xz" \
@@ -107,31 +108,36 @@ jobs:
             --extract \
             --verbose \
             --file "tmate.tar.xz"
-             
+
           # Add a "quit" command that kills the tmate session, thereby ending
           # the Action cleanly, without errors
           echo 'alias quit="pkill tmate"' >> ~/.bashrc
-      
+
       # Make CTF files from the repo available in the ~/ctf directory
       - uses: actions/checkout@v2
-        with:
-          path: /home/runner/ctf
-          
+      - name: Move checked out repository to ~/ctf
+        run: |
+          cd
+          mv "$GITHUB_WORKSPACE" ~/ctf
+
+          # Re-create the workspace directory, otherwise subsequent steps start
+          # in a folder that doesn't exist and immediately fail
+          mkdir --parents "$GITHUB_WORKSPACE"
+
       - name: Run tmate; send login info via a webhook if applicable
         run: |
           # Required to use fg for jobs sent to the background - for some
           # reason bash doesn't have job control enabled by default???
           set -m
-          
+
           # Run tmate in the background from the ctf repository folder, but
-          # give it some time to start. Done this way so we can both see tmate 
+          # give it some time to start. Done this way so we can both see tmate
           # login info, and send the info to the webhook, both of which can
           # only be done after it starts up.
-          cd /home/runner/ctf
-          pwd
+          cd ~/ctf
           ~/tmate-2.4.0-static-linux-amd64/tmate -F > ~/tmate_info.txt &
           sleep 5
-          
+
           # Print to stdout *and* send to a webhook
           cat ~/tmate_info.txt
           curl \
@@ -140,11 +146,11 @@ jobs:
             --data @/home/runner/tmate_info.txt \
             ${{ github.event.inputs.webhook_url }} \
             || true
-          
+
           # Bring tmate back to the foreground so the Action only ends when
           # tmate is closed
           fg
-          
+
       - name: Clean up
         run: |
           echo Done!
