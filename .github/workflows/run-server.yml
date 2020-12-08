@@ -128,9 +128,11 @@ jobs:
           set -m
           
           # Run tmate in the background from the ctf repository folder, but
-          # give it some time to start. Done this way so we can both see login
-          # info, and send data to the webhook after it starts
-          cd ~/ctf
+          # give it some time to start. Done this way so we can both see tmate 
+          # login info, and send the info to the webhook, both of which can
+          # only be done after it starts up.
+          cd /home/runner/ctf
+          pwd
           ~/tmate-2.4.0-static-linux-amd64/tmate -F > ~/tmate_info.txt &
           sleep 5
           
@@ -143,7 +145,8 @@ jobs:
             ${{ github.event.inputs.webhook_url }} \
             || true
           
-          # Bring tmate back to the foreground so the Action only ends when tmate is closed
+          # Bring tmate back to the foreground so the Action only ends when
+          # tmate is closed
           fg
           
       - name: Clean up
