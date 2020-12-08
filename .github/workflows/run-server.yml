@@ -1,21 +1,27 @@
-name: Collaborative CTF Environment
+name: Run Collaborative CTF Environment
 
 # Only run when manually triggered
 on: 
   workflow_dispatch:
     inputs:
+      # tmate login info is sent to this webhook if it is entered. This is
+      # useful because sometimes the GitHub Actions view does not correctly
+      # show the printed output Action while it is running, and if you can't
+      # see the tmate URL, you can't ssh in
+      # I usually use webhook.site to get a receiving webhook
       webhook_url:
-        description: Webhook URL (e.g. from https://webhook.site) for posting tmate info
+        description: Webhook URL (e.g. from https://webhook.site)
         required: false
 
 jobs:
   start_server:
-    name: Install packages and start the collaborative CTF server
+    name: Set up and start the collaborative CTF server
     runs-on: ubuntu-latest
     steps:
       - name: Install (and upgrade) packages
         run: |
           sudo apt-get update && sudo apt-get --yes upgrade
+          
           # TODO: add other packages for CTF stuff
           PACKAGES=(
             binutils
@@ -26,9 +32,24 @@ jobs:
             vim
             nmap
             htop
+            gdb
             tor
+            netcat
+            socat
+            build-essential
+            binwalk
+            exiftool
+            hashcat
+            qemu
+            valgrind
           )
           sudo apt-get --yes install ${PACKAGES[@]}
+          
+          python -m pip install --upgrade pip
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --upgrade setuptools
+          python3 -m pip install --upgrade pwntools
+          python3 -m pip install --upgrade ciphey
           
       - name: Set up my dotfiles
         run: |
@@ -50,13 +71,13 @@ jobs:
           tar -xvf "tmate.tar.xz"
           echo
           
-      - name: Run tmate and send login info via a webhook if one is entered
+      - name: Run tmate; send login info via a webhook if applicable
         run: |
           set -m  # For some reason bash doesn't have job control enabled by default????
           ~/tmate-2.4.0-static-linux-amd64/tmate -F > ~/tmate_info.txt &
           sleep 5
           cat ~/tmate_info.txt
-          curl --request POST --header "Content-Type: text/plain" --data @~/tmate_info.txt ${{ github.event.inputs.webhook_url }} || true
+          curl --request POST --header "Content-Type: text/plain" --data @/home/runner/tmate_info.txt ${{ github.event.inputs.webhook_url }} || true
           fg
           
       - name: Clean up
