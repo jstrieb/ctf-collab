@@ -60,11 +60,14 @@ jobs:
           )
           sudo apt-get --yes install ${PACKAGES[@]}
 
-          python -m pip install --upgrade pip
-          python3 -m pip install --upgrade pip
-          python3 -m pip install --upgrade setuptools
-          python3 -m pip install --upgrade pwntools
-          python3 -m pip install --upgrade ciphey
+          python -m pip install --upgrade pip setuptools wheel
+          python3 -m pip install --upgrade pip setuptools wheel
+
+          PIP_PACKAGES=(
+            pwntools
+            ciphey
+          )
+          python3 -m pip install --upgrade ${PIP_PACKAGES[@]}
 
       # Make CTF files from the repo available in the ~/ctf directory
       - uses: actions/checkout@v2
@@ -80,7 +83,6 @@ jobs:
       - name: Install dotfiles
         run: |
           cd ~/ctf/dotfiles
-          chmod +x install.sh
           bash install.sh
           cp ~/.tmux.conf ~/.tmate.conf
 
