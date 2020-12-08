@@ -7,6 +7,8 @@ alias l='ls -CF'
 export VISUAL=vim
 export EDITOR="$VISUAL"
 
+export PATH="$HOME/.local/bin:$PATH"
+
 function brc () {
   vim ~/.bashrc;
   . ~/.bashrc;
