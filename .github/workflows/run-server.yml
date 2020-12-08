@@ -1,3 +1,12 @@
+# This GitHub Actions workflow installs several useful tools for CTFs, and
+# starts a server so the user can connect and work in the virtual environment.
+# This is a pretty safe environment for running random binaries from CTFs, and
+# you mostly don't have to worry about fucking anything up sicne it starts
+# fresh every time.
+
+# Created by Jacob Strieb
+# December 2020
+
 name: Run Collaborative CTF Environment
 
 # Only run when manually triggered
@@ -78,8 +87,6 @@ jobs:
       # version doesn't yet seem available
       - name: Install tmate (reverse shell)
         run: |
-          cd
-          
           # xterm is required for a tmux/tmate tty. Included here rather than
           # the install section above to make clear that this is a specific
           # requirement for running tmate on this platform, even though other
@@ -92,6 +99,7 @@ jobs:
           # interactive prompt.
           ssh-keygen -f ~/.ssh/id_rsa -N ""
           
+          cd
           wget \
             --output-document "tmate.tar.xz" \
             "https://github.com/tmate-io/tmate/releases/download/2.4.0/tmate-2.4.0-static-linux-amd64.tar.xz"
