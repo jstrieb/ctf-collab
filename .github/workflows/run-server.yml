@@ -7,8 +7,8 @@ on:
       # tmate login info is sent to this webhook if it is entered. This is
       # useful because sometimes the GitHub Actions view does not correctly
       # show the printed output Action while it is running, and if you can't
-      # see the tmate URL, you can't ssh in
-      # I usually use webhook.site to get a receiving webhook
+      # see the tmate URL, you can't ssh in. I usually use webhook.site to
+      # easily create a temporary receiving webhook
       webhook_url:
         description: Webhook URL (e.g. from https://webhook.site)
         required: false
@@ -20,8 +20,12 @@ jobs:
     steps:
       - name: Install (and upgrade) packages
         run: |
-          sudo apt-get update && sudo apt-get --yes upgrade
+          sudo apt-get update 
+          # NOTE: upgrading takes way too long, and doesn't seem totally
+          # necessary; hence it has been commented out
+          # sudo apt-get --yes upgrade
           
+          # NOTE: many of these are already installed; included for posterity
           # TODO: add other packages for CTF stuff
           PACKAGES=(
             binutils
@@ -37,6 +41,8 @@ jobs:
             netcat
             socat
             build-essential
+            imagemagick
+            jq
             binwalk
             exiftool
             hashcat
@@ -56,28 +62,80 @@ jobs:
           cd
           git clone https://github.com/jstrieb/dotfiles.git
           cd dotfiles
-          sed -i "s/INSTALL_PACKAGES=true/INSTALL_PACKAGES=false/g" install.sh
+          
+          # Different versions of tmux escape backslashes in config files
+          # differently :(
           sed -i 's/bind \\\\/bind \\/' .tmux.conf
+          
+          sed -i "s/INSTALL_PACKAGES=true/INSTALL_PACKAGES=false/g" install.sh
+          sed -i "s/CONFIGURE_GIT=true/CONFIGURE_GIT=false/g" install.sh
+          
           chmod +x install.sh
           bash install.sh
           cp ~/.tmux.conf ~/.tmate.conf
           
+      # Install tmate this way instead of using aptitude because the latest
+      # version doesn't yet seem available
       - name: Install tmate (reverse shell)
         run: |
           cd
+          
+          # xterm is required for a tmux/tmate tty. Included here rather than
+          # the install section above to make clear that this is a specific
+          # requirement for running tmate on this platform, even though other
+          # stuff probably uses it.
           sudo apt-get --yes install xterm
+          
+          # tmate requires ssh keys, but it doesn't matter what they are. This
+          # generates them without a passcode and puts them in the usual
+          # location. The flags are the minimum such that ther is no
+          # interactive prompt.
           ssh-keygen -f ~/.ssh/id_rsa -N ""
-          wget -O "tmate.tar.xz" "https://github.com/tmate-io/tmate/releases/download/2.4.0/tmate-2.4.0-static-linux-amd64.tar.xz"
-          tar -xvf "tmate.tar.xz"
-          echo
+          
+          wget \
+            --output-document "tmate.tar.xz" \
+            "https://github.com/tmate-io/tmate/releases/download/2.4.0/tmate-2.4.0-static-linux-amd64.tar.xz"
+          tar \
+            --extract \
+            --verbose \
+            --file "tmate.tar.xz"
+             
+          # Add a "quit" command that kills the tmate session, thereby ending
+          # the Action cleanly, without errors
+          echo 'alias quit="pkill tmate"' >> ~/.bashrc
+      
+      # Make CTF files from the repo available, symlink them to the ~/ctf directory
+      - uses: actions/checkout@v2
+      - name: Symlink repository
+        run: |
+          ln \
+            --symbolic \
+            /home/runner/work/ctf-collab/ctf-collab \
+            ~/ctf
           
       - name: Run tmate; send login info via a webhook if applicable
         run: |
-          set -m  # For some reason bash doesn't have job control enabled by default????
+          # Required to use fg for jobs sent to the background - for some
+          # reason bash doesn't have job control enabled by default???
+          set -m
+          
+          # Run tmate in the background from the ctf repository folder, but
+          # give it some time to start. Done this way so we can both see login
+          # info, and send data to the webhook after it starts
+          cd ~/ctf
           ~/tmate-2.4.0-static-linux-amd64/tmate -F > ~/tmate_info.txt &
           sleep 5
+          
+          # Print to stdout *and* send to a webhook
           cat ~/tmate_info.txt
-          curl --request POST --header "Content-Type: text/plain" --data @/home/runner/tmate_info.txt ${{ github.event.inputs.webhook_url }} || true
+          curl \
+            --request POST \
+            --header "Content-Type: text/plain" \
+            --data @/home/runner/tmate_info.txt \
+            ${{ github.event.inputs.webhook_url }} \
+            || true
+          
+          # Bring tmate back to the foreground so the Action only ends when tmate is closed
           fg
           
       - name: Clean up
