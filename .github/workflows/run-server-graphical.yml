@@ -1,0 +1,155 @@
+# This GitHub Actions workflow installs several useful tools for CTFs, and
+# starts a server so the user can connect and work in the virtual environment.
+# This is a pretty safe environment for running random binaries from CTFs, and
+# you mostly don't have to worry about fucking anything up since it starts
+# fresh every time.
+#
+# The action also installs some graphical packages. It should be connected to
+# via Remote Desktop Protocol (RDP).
+#
+# Created by Jacob Strieb
+# December 2020
+
+name: Run Graphical RDP CTF Environment (Ubuntu GNOME)
+
+# Only run when manually triggered
+on:
+  workflow_dispatch:
+    inputs:
+      # Starts a server on ngrok, will work better with
+      ngrok_token:
+        description: ngrok authorization token to use
+        # TODO: Fix to make it possible to include a user secret instead
+        required: true
+
+
+jobs:
+  start_server:
+    name: Set up and start the graphical remote CTF server
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install (and upgrade) packages
+        run: |
+          sudo apt-get update
+          # NOTE: upgrading takes way too long, and doesn't seem totally
+          # necessary; hence it has been commented out
+          # sudo apt-get --yes upgrade
+
+          # NOTE: many of these are already installed; included for posterity
+          # TODO: add other packages for CTF stuff
+          PACKAGES=(
+            binutils
+            curl
+            wget
+            gcc
+            tmux
+            vim
+            nmap
+            htop
+            gdb
+            build-essential
+            xterm
+            sopwith # Classic fun :)
+          )
+          sudo apt-get --yes install ${PACKAGES[@]}
+
+          python -m pip install --upgrade pip setuptools wheel
+          python3 -m pip install --upgrade pip setuptools wheel
+
+          PIP_PACKAGES=(
+            pwntools
+            ciphey
+          )
+          # python3 -m pip install --upgrade ${PIP_PACKAGES[@]}
+
+          # Install tmate this way instead of using aptitude because the latest
+          # version doesn't yet seem available. Even though it's not run by
+          # default since the user connects over RDP instead of SSH, it's still
+          # useful to have around, so we install it here.
+          cd
+          wget \
+            --output-document "tmate.tar.xz" \
+            "https://github.com/tmate-io/tmate/releases/download/2.4.0/tmate-2.4.0-static-linux-amd64.tar.xz"
+          tar \
+            --extract \
+            --verbose \
+            --file "tmate.tar.xz"
+
+          # tmate requires ssh keys, but it doesn't matter what they are. This
+          # generates them without a passcode and puts them in the usual
+          # location. The flags are the minimum such that there is no
+          # interactive prompt.
+          ssh-keygen -f ~/.ssh/id_rsa -N ""
+
+      - name: Install (and upgrade) graphical packages
+        run: |
+          PACKAGES=(
+            ubuntu-desktop
+            wireshark
+          )
+          sudo apt-get --yes install ${PACKAGES[@]}
+
+          # Make sure the display manager is running after install
+          sudo systemctl start gdm3
+
+          # Install IDA
+          cd
+          mkdir --parents Downloads
+          cd Downloads
+          wget \
+            --output-document idafree70_linux.run \
+            "https://out7.hex-rays.com/files/idafree70_linux.run"
+          chmod +x idafree70_linux.run
+          ./idafree70_linux.run --mode unattended --installpassword password
+          echo 'alias ida="~/idafree-7.0/ida64"' >> ~/.bashrc
+
+          # Install Ghidra
+          wget \
+            --output-document "ghidra.zip" \
+            "https://ghidra-sre.org/ghidra_9.2_PUBLIC_20201113.zip"
+          unzip ghidra.zip
+          mv ghidra_9.2_PUBLIC ~/ghidra
+          echo 'alias ghidra="~/ghidra/ghidraRun"' >> ~/.bashrc
+
+      # Make CTF files from the repo available in the ~/ctf directory
+      - uses: actions/checkout@v2
+      - name: Move checked out repository to ~/ctf
+        run: |
+          cd
+          mv "$GITHUB_WORKSPACE" ~/ctf
+
+          # Re-create the workspace directory, otherwise subsequent steps start
+          # in a folder that doesn't exist and immediately fail
+          mkdir --parents "$GITHUB_WORKSPACE"
+
+      - name: Install dotfiles
+        run: |
+          cd ~/ctf/dotfiles
+          bash install.sh
+          cp ~/.tmux.conf ~/.tmate.conf
+
+      - name: Install RDP server and change runner password to "password"
+        run: |
+          echo "runner:password" | sudo chpasswd
+          sudo apt --yes install xrdp
+          sudo systemctl enable xrdp
+
+      - name: Install ngrok
+        if: ${{ github.event.inputs.ngrok_token }}
+        run: |
+          cd
+          wget \
+            --output-document "ngrok.zip" \
+            "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip"
+          unzip ngrok.zip
+          ./ngrok authtoken ${{ github.event.inputs.ngrok_token }}
+
+      - name: Run ngrok
+        run: |
+          echo Check you ngrok tunnel status dashboard if no info appears below
+          echo https://dashboard.ngrok.com/status/tunnels
+          ~/ngrok tcp --log "false" 3389
+
+      - name: Clean up
+        run: |
+          echo Done!
