@@ -13,13 +13,8 @@ name: Run Collaborative CTF Environment
 on:
   workflow_dispatch:
     inputs:
-      # tmate login info is sent to this webhook if it is entered. This is
-      # useful because sometimes the GitHub Actions view does not correctly
-      # show the printed output from the Action while it is running, and if you
-      # can't see the tmate URL, you can't ssh in. I usually use webhook.site
-      # to easily create a temporary receiving webhook
-      webhook_url:
-        description: Webhook URL (e.g. from https://webhook.site)
+      ngrok_token:
+        description: Token to use for ngrok (optional)
         required: false
 
 jobs:
@@ -46,7 +41,6 @@ jobs:
             nmap
             htop
             gdb
-            tor
             netcat
             socat
             build-essential
@@ -69,6 +63,7 @@ jobs:
           )
           python3 -m pip install --upgrade ${PIP_PACKAGES[@]}
 
+
       # Make CTF files from the repo available in the ~/ctf directory
       - uses: actions/checkout@v2
       - name: Move checked out repository to ~/ctf
@@ -80,67 +75,143 @@ jobs:
           # in a folder that doesn't exist and immediately fail
           mkdir --parents "$GITHUB_WORKSPACE"
 
+
       - name: Install dotfiles
         run: |
           cd ~/ctf/dotfiles
           bash install.sh
-          cp ~/.tmux.conf ~/.tmate.conf
 
-      # Install tmate this way instead of using aptitude because the latest
-      # version doesn't yet seem available
-      - name: Install tmate (reverse shell)
+          cp ./ttyd_run.sh ~/ttyd_run.sh
+          cp ./ngrok.yml ~/ngrok.yml
+
+          # Change the runner password to "ctf"; by default it has no password,
+          # which complicates some things like connecting via SSH
+          echo "runner:ctf" | sudo chpasswd
+
+          # Add a command to kill the action by killing the "sleep" process
+          echo 'alias quit="pkill sleep"' >> ~/.bashrc
+
+
+      - name: Install ngrok and run in the background as a daemon
         run: |
-          # xterm is required for a tmux/tmate tty. Included here rather than
-          # the install section above to make clear that this is a specific
-          # requirement for running tmate on this platform, even though other
-          # stuff probably uses xterm anyway.
-          sudo apt-get --yes install xterm
+          # Only proceed if there is a user-supplied authtoken for ngrok.
+          # Prefer one submitted with a workflow dispatch, but accept one
+          # stored as a repository secret.
+          NGROK_AUTHTOKEN="${{ github.event.inputs.ngrok_token }}"
+          if [ -z "$NGROK_AUTHTOKEN" ]; then
+            NGROK_AUTHTOKEN="${{ secrets.NGROK_TOKEN }}"
+          fi
+          if [ -z "$NGROK_AUTHTOKEN" ]; then
+            exit 0
+          fi
 
-          # tmate requires ssh keys, but it doesn't matter what they are. This
-          # generates them without a passcode and puts them in the usual
-          # location. The flags are the minimum such that there is no
-          # interactive prompt.
-          ssh-keygen -f ~/.ssh/id_rsa -N ""
+          # Add the authtoken to the ngrok configuration file
+          echo "authtoken: $NGROK_AUTHTOKEN" >> ~/ngrok.yml
 
+          # Download and install ngrok
           cd
           wget \
-            --output-document "tmate.tar.xz" \
-            "https://github.com/tmate-io/tmate/releases/download/2.4.0/tmate-2.4.0-static-linux-amd64.tar.xz"
-          tar \
-            --extract \
-            --verbose \
-            --file "tmate.tar.xz"
+            --output-document ngrok.zip \
+            "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip"
+          unzip ngrok.zip
+          sudo mv ngrok /usr/local/bin/ngrok
+          touch ~/ngrok.log
 
-          # Add a "quit" command that kills the tmate session, thereby ending
-          # the Action cleanly, without errors
-          echo 'alias quit="pkill tmate"' >> ~/.bashrc
+          # Run ngrok in the background as a daemon
+          start-stop-daemon \
+            --start \
+            --background \
+            --chdir ~/ctf \
+            --exec /usr/local/bin/ngrok \
+            -- \
+              start \
+              -config ~/ngrok.yml \
+              ttyd ssh
 
-        # Run tmate in the background from the ctf repository folder, but give
-        # it some time to start. Done this way so we can both see tmate login
-        # info, and send the info to the webhook, both of which can only be
-        # done after it starts up.
-      - name: Run tmate; send login info via a webhook if applicable
+
+      - name: Install ttyd and run in the background as a daemon
         run: |
-          # Required to use fg for jobs sent to the background - for some
-          # reason bash doesn't have job control enabled by default???
-          set -m
+          # xterm is required for tmux\ttyd. Installed here to highlight that
+          # this is the specific part of the script that requires it.
+          sudo apt-get --yes install xterm
 
-          cd ~/ctf
-          ~/tmate-2.4.0-static-linux-amd64/tmate -F > ~/tmate_info.txt &
-          sleep 5
+          # Download and install ttyd
+          cd
+          wget \
+            --output-document ttyd \
+            "https://github.com/tsl0922/ttyd/releases/download/1.6.1/ttyd_linux.x86_64"
+          chmod +x ttyd
+          sudo mv ttyd /usr/local/bin/ttyd
 
-          # Print to stdout *and* send to a webhook
-          cat ~/tmate_info.txt
-          curl \
-            --request POST \
-            --header "Content-Type: text/plain" \
-            --data @/home/runner/tmate_info.txt \
-            ${{ github.event.inputs.webhook_url }} \
-            || true
+          # Run ttyd in the background as a daemon
+          start-stop-daemon \
+            --start \
+            --background \
+            --chdir ~/ctf \
+            --exec /usr/local/bin/ttyd \
+            -- \
+              --port 7681 \
+              --credential runner:ctf \
+              /bin/bash ~/ttyd_run.sh
 
-          # Bring tmate back to the foreground so the Action only ends when
-          # tmate is closed
-          fg
+
+      - name: Install Tor and run a hidden service in the background as a daemon
+        run: |
+          sudo apt-get --yes install tor
+
+          # Sometimes it's already running for some reason...?
+          sudo service tor stop
+          sudo killall tor || true
+
+          # Run a hidden service in the background as a daemon -- allow
+          # connecting to the ttyd instance via a browser and allow SSH
+          tor \
+            --runasdaemon 1 \
+            --hiddenservicedir /home/runner/tor_service \
+            --hiddenserviceport "80 127.0.0.1:7681" \
+            --hiddenserviceport "22 127.0.0.1:22"
+
+
+      - name: Display connection information
+        run: |
+          # Start a tmux session in the background whose window group everyone
+          # will share
+          tmux new-session -d -s ctf
+
+          echo Waiting for things to start up...
+          sleep 20s
+
+          echo
+          echo When connecting, use username "'runner'" and password "'ctf'"
+          echo
+
+          # Print Tor connection info
+          echo To connect securely over Tor:
+          printf "http://%s\n" "$(cat ~/tor_service/hostname)"
+          printf \
+            "ssh -o ProxyCommand='nc -x localhost:9150 %%h %%p' ssh://runner@%s\n\n" \
+            "$(cat ~/tor_service/hostname)"
+
+          # Print ngrok connection info (if applicable)
+          NGROK_AUTHTOKEN="${{ github.event.inputs.ngrok_token }}"
+          if [ -z "$NGROK_AUTHTOKEN" ]; then
+            NGROK_AUTHTOKEN="${{ secrets.NGROK_TOKEN }}"
+          fi
+          if [ -n "$NGROK_AUTHTOKEN" ]; then
+            echo "To connect using ngrok (i.e., not Tor):"
+            cat ~/ngrok.log \
+              | jq .url \
+              | grep -v "null" \
+              | tr -d '"' \
+              | sed 's/tcp:\/\/\(.*\)/ssh ssh:\/\/runner@\1/g' \
+              | sort
+          fi
+
+          # Wait... This process will be killed to end the Action. Return a
+          # non-failure exit code in any case so that there are no unnecessary
+          # notifications about a failed Actions workflow.
+          sleep 6h || true
+
 
       - name: Clean up
         run: |

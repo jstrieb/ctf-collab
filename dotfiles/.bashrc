@@ -25,3 +25,7 @@ alias sl="ls"
 alias webserver="python3 -m http.server 8080 &> /dev/null &"
 alias backup-website="wget --mirror --convert-links --adjust-extension --page-requisites --no-parent"
 alias latest="ls -rt | tail"
+
+if [ -n "$SSH_CONNECTION" ] && [ -z "$TMUX" ]; then
+  /bin/bash /home/runner/ttyd_run.sh
+fi

@@ -135,7 +135,6 @@ jobs:
           sudo systemctl enable xrdp
 
       - name: Install ngrok
-        if: ${{ github.event.inputs.ngrok_token }}
         run: |
           cd
           wget \

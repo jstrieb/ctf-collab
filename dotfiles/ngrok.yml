@@ -1,0 +1,13 @@
+console_ui: false
+log: /home/runner/ngrok.log
+log_format: json
+web_addr: false
+tunnels:
+  ttyd:
+    proto: http
+    addr: 7681
+    inspect: false
+  ssh:
+    proto: tcp
+    addr: 22
+    inspect: false
