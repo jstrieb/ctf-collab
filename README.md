@@ -5,6 +5,9 @@ data with git. Particularly useful for solving Capture The Flag
 ([CTF](https://en.wikipedia.org/wiki/Capture_the_flag#Computer_security))
 problems.
 
+For the less technical in the audience, this serves as a sort of "Google Doc"
+for working on hacking competitions collaboratively.
+
 # Quick start
 
 [Create a repo from the
