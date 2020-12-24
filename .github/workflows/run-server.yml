@@ -176,7 +176,7 @@ jobs:
         run: |
           # Start a tmux session in the background whose window group everyone
           # will share
-          tmux new-session -d -s ctf
+          tmux new-session -d -c ~/ctf -s ctf
 
           echo Waiting for things to start up...
           sleep 20s
