@@ -66,15 +66,27 @@ doesn't require downloading Tor, but it does require signing up for ngrok.
   - Press <kbd>Ctrl + A</kbd> and then <kbd>c</kbd> to open a new window
   - Press <kbd>Ctrl + A</kbd> and then <kbd>n</kbd> to go to the next window
   - Press <kbd>Ctrl + A</kbd> and then <kbd>|</kbd> to split the current pane
-    vertically
+    vertically (this is a vertical bar "|", not the letter "L" or "i")
   - Press <kbd>Ctrl + A</kbd> and then <kbd>S</kbd> to split the current pane
-    horizontally
+    horizontally (this is a *capitalized* "S" – `tmux` cares about
+    capitalization)
   - Press <kbd>Ctrl + A</kbd> and then one of the arrow keys to move to the
     pane in that direction
 - Use the `quit` command to terminate the server for all connected users
+  - Alternatively, the workflow can be canceled from within the GitHub web
+    interface
 - Create folders in the repo (`~/ctf`) for each CTF to stay organized
   - Save any changes by committing using `git` within the `~/ctf` folder
   - The default identity associated with commits is anonymous
+- Theoretically, unlimited users can connect at once via Tor, and up to 40 can
+  connect using ngrok for free
+  - Practically, the real upper-limit is probably far lower
+  - Every new user connects using the same link/connection information
+  - Additional users do not need GitHub accounts to connect or commit to the
+    repository from within the environment
+  - Each user can create their own windows independently, or switch to windows
+    created by other users
+  - All connected users have passwordless `sudo` capabilities
 
 <details>
 
@@ -131,8 +143,12 @@ after 6 hours.
 
 # Acknowledgments
 
+Thanks to my good friend Logan Snow ([@lsnow99](https://github.com/lsnow99))
+for testing, fixing bugs, and other contributions!
+
 This project makes use of several great software packages that have made their
 services available for free:
+
 - [Tor](https://www.torproject.org/)
 - [ngrok](https://ngrok.com)
 - [tmux](https://en.wikipedia.org/wiki/Tmux)
