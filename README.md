@@ -5,7 +5,7 @@ data with git. Particularly useful for solving Capture The Flag
 ([CTF](https://en.wikipedia.org/wiki/Capture_the_flag#Computer_security))
 problems.
 
-For the less technical in the audience, this serves as a sort of "Google Doc"
+For the less technical in the audience, this serves as a sort of "Google Docs"
 for working on hacking competitions collaboratively.
 
 # Quick start
@@ -107,7 +107,16 @@ doesn't require downloading Tor, but it does require signing up for ngrok.
 
 </details>
 
-# Be a Good Citizen
+# Who This Project is For
+
+This project is for those with limited access to compute resources – students
+in particular. By making it possible to connect from the web and over Tor, the
+project is designed to be accessible to those who are behind a firewall and/or
+are unable to install software on the computer they are using. For example,
+someone who wants to participate in a CTF competition, but is using
+shared computers in a library or a school computer lab.
+
+## Be a Good Citizen
 
 This project uses generously-offered, free resources in a way that was likely
 not intended by GitHub. Please do not abuse them.
@@ -127,7 +136,8 @@ particularly if you don't have the ability to run a Linux computer of your own,
 is probably permissible if done in good faith, and with an effort made to
 reduce excessive resource consumption. For example, don't use the graphical
 workflows unless absolutely necessary, because they are considerably more
-resource intensive to set up and run.
+resource intensive to set up and run, and don't leave the workflows running
+when not using them.
 
 That being said, I may be reading the policies wrong, and GitHub has the right
 to change them at any time. In particular, if this use of GitHub Actions is
@@ -152,3 +162,4 @@ services available for free:
 - [Tor](https://www.torproject.org/)
 - [ngrok](https://ngrok.com)
 - [tmux](https://en.wikipedia.org/wiki/Tmux)
+- [GitHub Actions](https://github.com/features/actions)
