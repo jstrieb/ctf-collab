@@ -11,3 +11,7 @@ tunnels:
     proto: tcp
     addr: 22
     inspect: false
+  rdp:
+    proto: tcp
+    addr: 3389
+    inspect: false

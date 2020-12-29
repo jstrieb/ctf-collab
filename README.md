@@ -65,8 +65,9 @@ doesn't require downloading Tor, but it does require signing up for ngrok.
     `tmux`](https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/)
   - Press <kbd>Ctrl + A</kbd> and then <kbd>c</kbd> to open a new window
   - Press <kbd>Ctrl + A</kbd> and then <kbd>n</kbd> to go to the next window
+    and <kbd>Ctrl + A</kbd> and then <kbd>p</kbd> to go to the previous window
   - Press <kbd>Ctrl + A</kbd> and then <kbd>|</kbd> to split the current pane
-    vertically (this is a vertical bar "|", not the letter "L" or "i")
+    vertically (this is a vertical bar "|" – not the letter "L" or "i")
   - Press <kbd>Ctrl + A</kbd> and then <kbd>S</kbd> to split the current pane
     horizontally (this is a *capitalized* "S" – `tmux` cares about
     capitalization)

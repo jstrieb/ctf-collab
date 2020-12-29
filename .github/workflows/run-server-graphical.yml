@@ -16,11 +16,9 @@ name: Run Graphical RDP CTF Environment (Ubuntu GNOME)
 on:
   workflow_dispatch:
     inputs:
-      # Starts a server on ngrok, will work better with
       ngrok_token:
-        description: ngrok authorization token to use
-        # TODO: Fix to make it possible to include a user secret instead
-        required: true
+        description: Token to use for ngrok (optional)
+        required: false
 
 
 jobs:
@@ -28,6 +26,10 @@ jobs:
     name: Set up and start the graphical remote CTF server
     runs-on: ubuntu-latest
     steps:
+      - name: Change password
+        run: |
+          echo "runner:ctf" | sudo chpasswd
+
       - name: Install (and upgrade) packages
         run: |
           sudo apt-get update
@@ -62,25 +64,6 @@ jobs:
           )
           # python3 -m pip install --upgrade ${PIP_PACKAGES[@]}
 
-          # Install tmate this way instead of using aptitude because the latest
-          # version doesn't yet seem available. Even though it's not run by
-          # default since the user connects over RDP instead of SSH, it's still
-          # useful to have around, so we install it here.
-          cd
-          wget \
-            --output-document "tmate.tar.xz" \
-            "https://github.com/tmate-io/tmate/releases/download/2.4.0/tmate-2.4.0-static-linux-amd64.tar.xz"
-          tar \
-            --extract \
-            --verbose \
-            --file "tmate.tar.xz"
-
-          # tmate requires ssh keys, but it doesn't matter what they are. This
-          # generates them without a passcode and puts them in the usual
-          # location. The flags are the minimum such that there is no
-          # interactive prompt.
-          ssh-keygen -f ~/.ssh/id_rsa -N ""
-
       - name: Install (and upgrade) graphical packages
         run: |
           PACKAGES=(
@@ -97,14 +80,16 @@ jobs:
           mkdir --parents Downloads
           cd Downloads
           wget \
+            --quiet \
             --output-document idafree70_linux.run \
             "https://out7.hex-rays.com/files/idafree70_linux.run"
           chmod +x idafree70_linux.run
-          ./idafree70_linux.run --mode unattended --installpassword password
+          ./idafree70_linux.run --mode unattended --installpassword ctf
           echo 'alias ida="~/idafree-7.0/ida64"' >> ~/.bashrc
 
           # Install Ghidra
           wget \
+            --quiet \
             --output-document "ghidra.zip" \
             "https://ghidra-sre.org/ghidra_9.2_PUBLIC_20201113.zip"
           unzip ghidra.zip
@@ -126,28 +111,85 @@ jobs:
         run: |
           cd ~/ctf/dotfiles
           bash install.sh
-          cp ~/.tmux.conf ~/.tmate.conf
 
-      - name: Install RDP server and change runner password to "password"
+          cp ./ttyd_run.sh ~/ttyd_run.sh
+          cp ./ngrok.yml ~/ngrok.yml
+
+          # Add a command to kill the action by killing the "sleep" process
+          echo 'alias quit="pkill sleep"' >> ~/.bashrc
+
+      - name: Install RDP server
         run: |
-          echo "runner:password" | sudo chpasswd
           sudo apt --yes install xrdp
           sudo systemctl enable xrdp
 
-      - name: Install ngrok
+      - name: Install ngrok and run in the background as a daemon
         run: |
+          # Only proceed if there is a user-supplied authtoken for ngrok.
+          # Prefer one submitted with a workflow dispatch, but accept one
+          # stored as a repository secret.
+          NGROK_AUTHTOKEN="${{ github.event.inputs.ngrok_token }}"
+          if [ -z "$NGROK_AUTHTOKEN" ]; then
+            NGROK_AUTHTOKEN="${{ secrets.NGROK_TOKEN }}"
+          fi
+          if [ -z "$NGROK_AUTHTOKEN" ]; then
+            echo ngrok authtoken required!
+            exit 1
+          fi
+
+          # Add the authtoken to the ngrok configuration file
+          echo "authtoken: $NGROK_AUTHTOKEN" >> ~/ngrok.yml
+
+          # Download and install ngrok
           cd
           wget \
-            --output-document "ngrok.zip" \
+            --quiet \
+            --output-document ngrok.zip \
             "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip"
           unzip ngrok.zip
-          ./ngrok authtoken ${{ github.event.inputs.ngrok_token }}
+          sudo mv ngrok /usr/local/bin/ngrok
+          touch ~/ngrok.log
 
-      - name: Run ngrok
+          # Run ngrok in the background as a daemon
+          start-stop-daemon \
+            --start \
+            --background \
+            --chdir ~/ctf \
+            --exec /usr/local/bin/ngrok \
+            -- \
+              start \
+              -config ~/ngrok.yml \
+              rdp
+
+      - name: Display connection information
         run: |
-          echo Check you ngrok tunnel status dashboard if no info appears below
-          echo https://dashboard.ngrok.com/status/tunnels
-          ~/ngrok tcp --log "false" 3389
+          echo Waiting for things to start up...
+          sleep 20s
+
+          echo
+          echo When connecting, use username "'runner'" and password "'ctf'"
+          echo
+
+          # Print ngrok connection info (if applicable)
+          NGROK_AUTHTOKEN="${{ github.event.inputs.ngrok_token }}"
+          if [ -z "$NGROK_AUTHTOKEN" ]; then
+            NGROK_AUTHTOKEN="${{ secrets.NGROK_TOKEN }}"
+          fi
+          if [ -n "$NGROK_AUTHTOKEN" ]; then
+            echo "To connect using an RDP client:"
+            cat ~/ngrok.log \
+              | jq .url \
+              | grep -v "null" \
+              | tr -d '"' \
+              | sed 's/tcp:\/\/\(.*\)/\1/g' \
+              | sort
+          fi
+
+          # Wait... This process will be killed to end the Action. Return a
+          # non-failure exit code in any case so that there are no unnecessary
+          # notifications about a failed Actions workflow.
+          sleep 6h || true
+
 
       - name: Clean up
         run: |
