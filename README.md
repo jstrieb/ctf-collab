@@ -56,6 +56,26 @@ doesn't require downloading Tor, but it does require signing up for ngrok.
 6. SSH in or connect from the Web using the connection information printed
    during the Action run.
 
+## Once Connected
+
+- By default, the collaborative environment uses `tmux` with <kbd>Ctrl +
+  A</kbd> as the "prefix," and a few other custom keys that can be viewed in
+  [.tmux.conf](dotfiles/.tmux.conf)
+  - Read a [good introduction to
+    `tmux`](https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/)
+  - Press <kbd>Ctrl + A</kbd> and then <kbd>c</kbd> to open a new window
+  - Press <kbd>Ctrl + A</kbd> and then <kbd>n</kbd> to go to the next window
+  - Press <kbd>Ctrl + A</kbd> and then <kbd>|</kbd> to split the current pane
+    vertically
+  - Press <kbd>Ctrl + A</kbd> and then <kbd>S</kbd> to split the current pane
+    horizontally
+  - Press <kbd>Ctrl + A</kbd> and then one of the arrow keys to move to the
+    pane in that direction
+- Use the `quit` command to terminate the server for all connected users
+- Create folders in the repo (`~/ctf`) for each CTF to stay organized
+  - Save any changes by committing using `git` within the `~/ctf` folder
+  - The default identity associated with commits is anonymous
+
 <details>
 
 <summary><b>Graphical Server</b></summary>
@@ -115,3 +135,4 @@ This project makes use of several great software packages that have made their
 services available for free:
 - [Tor](https://www.torproject.org/)
 - [ngrok](https://ngrok.com)
+- [tmux](https://en.wikipedia.org/wiki/Tmux)
