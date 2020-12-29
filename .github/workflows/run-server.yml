@@ -166,13 +166,12 @@ jobs:
           # Generate a random port for Tor to use since the default is often
           # taken
           export TOR_SOCKS_PORT="$((1025 + RANDOM % 8975))"
-          echo "SOCKSPort $TOR_SOCKS_PORT" | sudo tee -a /etc/tor/torrc
 
           # Run a hidden service in the background as a daemon -- allow
           # connecting to the ttyd instance via a browser and allow SSH
           tor \
             --runasdaemon 1 \
-            --socksport
+            --socksport $TOR_SOCKS_PORT \
             --hiddenservicedir /home/runner/tor_service \
             --hiddenserviceport "80 127.0.0.1:7681" \
             --hiddenserviceport "22 127.0.0.1:22"
