@@ -32,6 +32,9 @@ alternative, non-Tor connection method.
 5. SSH in or connect from the Web using the connection information printed
    during the Action run. Note: whether connection to the `.onion` address
    using the browser or SSH, Tor Browser must be running.
+6. Tor browser has a default setting that causes text to be illegible in `ttyd`
+   and/or its dependency `term.js`. To fix this, go to `about:config` in the
+   address bar, and set `privacy.resistFingerprinting` to `false`.
 
 ## Connect With ngrok (Without Tor)
 
