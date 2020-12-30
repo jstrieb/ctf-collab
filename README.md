@@ -1,12 +1,12 @@
 # Introduction
 
-Create a collaborative environment inside GitHub Actions; conveniently save
-data with git. Particularly useful for solving Capture The Flag
-([CTF](https://en.wikipedia.org/wiki/Capture_the_flag#Computer_security))
+Create a collaborative programming environment inside GitHub Actions;
+conveniently save data with git. Particularly useful for solving Capture The
+Flag ([CTF](https://en.wikipedia.org/wiki/Capture_the_flag#Computer_security))
 problems.
 
-For the less technical in the audience, this serves as a sort of "Google Docs"
-for working on hacking competitions collaboratively.
+Less technically: this is kind of like Google Docs for working on hacking
+competitions collaboratively.
 
 # Quick start
 
@@ -95,6 +95,11 @@ doesn't require downloading Tor, but it does require signing up for ngrok.
   - Each user can create their own windows independently, or switch to windows
     created by other users
   - All connected users have passwordless `sudo` capabilities
+- If you regularly install packages, add them to the [GitHub Actions
+  workflow](./.github/workflows/run-server.yml#L35) so they are installed every
+  time the environment starts up
+  - The default packages that are installed in the environment can be viewed
+    [here](./.github/workflows/run-server.yml#L35)
 
 <details>
 
@@ -168,6 +173,35 @@ per month per user. This project can quickly run up that time if you are not
 careful. Check your own usage [here](https://github.com/settings/billing) to
 see how close to the limit you are. Also note that actions stop automatically
 after 6 hours.
+
+# Known Issues
+
+- **Problem:** Tor browser loads the hidden service indefinitely, never
+  connecting
+
+  **Solution:** Restart Tor browser
+- **Problem:** The web interface text is illegible when using Tor browser or
+  Firefox
+
+  **Solution:** Disable the `privacy.resistFingerprinting` setting in
+  `about:config`
+- **Problem:** The "Display connection info and sleep" workflow step fails when
+  trying to display ngrok connection information
+
+  **Solution:** The ngrok authtoken supplied either as input to the workflow,
+  or as a repository secret is invalid or corrupted
+- **Problem:** Connecting to the server using SSH over Tor fails
+
+  **Solution:** Make sure Tor browser is running while the command is run. If
+  it is still not working, try the command on port `9050` instead of `9150`
+- **Problem:** Tor fails to bind to the port when running the workflow
+
+  **Solution:** Run the action again. If it continues to fail, [open an
+  issue](https://github.com/jstrieb/ctf-collab-template/issues/new)
+- **Problem:** The web interface does not work with tor2web sites like
+  [tor2web.io](https://tor2web.io) or [onion.sh](https://onion.sh)
+
+  **Solution:** Use Tor browser and do not use tor2web sites
 
 # Acknowledgments
 
