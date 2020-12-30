@@ -1,8 +1,9 @@
 # Introduction
 
-Create a collaborative programming environment inside GitHub Actions;
-conveniently save data with git. Particularly useful for solving Capture The
-Flag ([CTF](https://en.wikipedia.org/wiki/Capture_the_flag#Computer_security))
+Create an ephemeral, collaborative programming environment inside GitHub
+Actions; conveniently save data with git. Particularly useful for solving
+Capture The Flag
+([CTF](https://en.wikipedia.org/wiki/Capture_the_flag#Computer_security))
 problems.
 
 Less technically: this is kind of like Google Docs for working on hacking
