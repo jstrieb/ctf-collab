@@ -203,6 +203,28 @@ after 6 hours.
 
   **Solution:** Use Tor browser and do not use tor2web sites
 
+# How to Read This Code
+
+- The vast majority of the code is contained in a single, [primary GitHub
+  Actions workflow](./.github/workflows/run-server.yml), which sets up the
+  environment and displays connection details to the user. This file is fairly
+  well-commented, and most design decisions should have included justification.
+  For readability, I have
+  tried to use long command-line options where possible. There may be more
+  information in the commit history, for example [this
+  commit](https://github.com/jstrieb/ctf-collab-template/commit/47148f0ecc78c755cd69e5f09d76a4fc94530df9)
+  justifies switching from [tmate.io](https://tmate.io) to ngrok and Tor.
+- The [`dotfiles`](./dotfiles) directory contains configuration files for many
+  programs running in the collaborative environment.
+  - [`install.sh`](./dotfiles/install.sh) copies dotfiles to the proper
+    locations
+  - [`.tmux.conf`](./dotfiles/.tmux.conf) contains custom shortcuts for `tmux`
+  - [`.bashrc`](./dotfiles/.bashrc) is pretty minimal, but contains a few
+    useful command aliases
+  - [`ttyd_run.sh`](./dotfiles/ttyd_run.sh) is run every time a new user
+    connects via SSH or the Web interface and is responsible for opening a new
+    `tmux` session that uses one common set of windows for all clients
+
 # Acknowledgments
 
 Thanks to my good friend Logan Snow ([@lsnow99](https://github.com/lsnow99))
@@ -213,5 +235,6 @@ services available for free:
 
 - [Tor](https://www.torproject.org/)
 - [ngrok](https://ngrok.com)
+- [ttyd](https://github.com/tsl0922/ttyd)
 - [tmux](https://en.wikipedia.org/wiki/Tmux)
 - [GitHub Actions](https://github.com/features/actions)
