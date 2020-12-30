@@ -73,6 +73,13 @@ doesn't require downloading Tor, but it does require signing up for ngrok.
     capitalization)
   - Press <kbd>Ctrl + A</kbd> and then one of the arrow keys to move to the
     pane in that direction
+- By default, `tmux` adjusts the size of a window to accommodate the smallest
+  viewer
+  - Every window is the same size for all viewers, at all times
+  - To make the window adjust to the largest client instead of the smallest,
+    press <kbd>Ctrl + A</kbd> and then <kbd>G</kbd> (must be capital "G")
+  - Be careful! This will mean that some of the window is difficult or
+    impossible to see for the viewer with the smaller client
 - Use the `quit` command to terminate the server for all connected users
   - Alternatively, the workflow can be canceled from within the GitHub web
     interface
