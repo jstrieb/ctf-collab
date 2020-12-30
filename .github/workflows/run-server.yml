@@ -111,6 +111,7 @@ jobs:
           # Download and install ngrok
           cd
           wget \
+            --quiet \
             --output-document ngrok.zip \
             "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip"
           unzip ngrok.zip
@@ -138,6 +139,7 @@ jobs:
           # Download and install ttyd
           cd
           wget \
+            --quiet \
             --output-document ttyd \
             "https://github.com/tsl0922/ttyd/releases/download/1.6.1/ttyd_linux.x86_64"
           chmod +x ttyd
