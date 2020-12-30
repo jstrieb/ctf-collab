@@ -24,7 +24,7 @@ on:
 jobs:
   start_server:
     name: Set up and start the graphical remote CTF server
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Change password
         run: |

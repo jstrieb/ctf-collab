@@ -20,7 +20,7 @@ on:
 jobs:
   start_server:
     name: Set up and start the collaborative CTF server
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Install (and upgrade) packages
         run: |
