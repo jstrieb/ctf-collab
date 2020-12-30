@@ -95,16 +95,23 @@ doesn't require downloading Tor, but it does require signing up for ngrok.
 
 **Don't use the graphical workflow unless absolutely necessary!**
 
-- Sign up for ngrok and get an authentication token
-- Run the workflow and pass in the ngrok authentication token
-- Wait for ngrok to run, and look in your ngrok dashboard for the server and
-  port to connect to
-- Connect using an [RDP](https://en.wikipedia.org/wiki/Remote_Desktop_Protocol)
-  client if using the graphical workflow
-  - Username `runner`
-  - Password `ctf`
-  - There is a default RDP client installed on Windows
-  - For Linux [Remmina](https://remmina.org/how-to-install-remmina/)
+1. [Sign up for ngrok](https://dashboard.ngrok.com/get-started/setup).
+2. [Copy your ngrok
+   Authtoken](https://dashboard.ngrok.com/auth/your-authtoken).
+3. Navigate to the ["Run Graphical RDP CTF Environment (Ubuntu GNOME)"
+   workflow](../../actions?query=workflow%3A"Run+Graphical+RDP+CTF+Environment+(Ubuntu+GNOME)").
+4. Paste in your ngrok Authtoken when you start the server using the button in
+   the top right ("Run workflow").
+   - To avoid pasting the Authtoken every time, paste it into a secret called
+     `NGROK_TOKEN` under the [Secrets](../../settings/secrets/actions) settings
+     area. It will be saved here and used automatically.
+5. View the output; wait for it to print the connection information.
+6. Paste the connection link into your [remote desktop (RDP)
+   client](https://en.wikipedia.org/wiki/Remote_Desktop_Protocol).
+   - On Windows, press the start button and search for "Remote Desktop
+     Connection" – the client should be installed by default.
+   - On Linux [Remmina](https://remmina.org/how-to-install-remmina/) is a
+     well-regarded RDP client.
 
 </details>
 
@@ -116,6 +123,9 @@ project is designed to be accessible to those who are behind a firewall and/or
 are unable to install software on the computer they are using. For example,
 someone who wants to participate in a CTF competition, but is using
 shared computers in a library or a school computer lab.
+
+If this doesn't approximately describe you, please don't use the project – let
+the resources be used by someone with greater need.
 
 ## Be a Good Citizen
 
