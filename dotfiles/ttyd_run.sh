@@ -1,2 +1,2 @@
 # Create a new tmux session with a randomized identifier
-cd ~/ctf && tmux new-session -c ~/ctf -s "ctf""$(date +%s | sed "s/\(.\)/\1\n/g" | head -n -1 | shuf | tail -n 6 | tr -d "\n")" -t ctf
+cd ~/ctf && tmux new-session -c ~/ctf -s "ctf""$((RANDOM))" -t ctf
