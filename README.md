@@ -13,7 +13,8 @@ competitions collaboratively.
 
 [Create a repo from the
 template](https://github.com/jstrieb/ctf-collab-template/generate). Do the rest
-of the steps from within your copy of the repository.
+of the steps from within your copy of the repository. The link to create a copy
+of the repository will only work for users logged into GitHub.
 
 In all cases, the username is `runner` and the password is `ctf`.
 
@@ -24,6 +25,10 @@ require signing up for any service. It does, however, require downloading the
 Tor Browser Bundle. It also runs with noticeably higher latency than using the
 alternative, non-Tor connection method.
 
+0. [Create a repo from the
+   template](https://github.com/jstrieb/ctf-collab-template/generate). Many of
+   the following links will only work from within your copy of the repository.
+   Creating a copy only works for users logged into GitHub.
 1. Download and run the [Tor Browser
    Bundle](https://www.torproject.org/download/).
 2. Navigate to the ["Run Collaborative CTF Environment"
@@ -43,6 +48,10 @@ Connecting over ngrok instead of Tor is a less secure, but lower-latency way to
 connect to the server running on GitHub Actions. This method of connecting
 doesn't require downloading Tor, but it does require signing up for ngrok.
 
+0. [Create a repo from the
+   template](https://github.com/jstrieb/ctf-collab-template/generate). Many of
+   the following links will only work from within your copy of the repository.
+   Creating a copy only works for users logged into GitHub.
 1. [Sign up for ngrok](https://dashboard.ngrok.com/get-started/setup).
 2. [Copy your ngrok
    Authtoken](https://dashboard.ngrok.com/auth/your-authtoken).
@@ -108,6 +117,10 @@ doesn't require downloading Tor, but it does require signing up for ngrok.
 
 **Don't use the graphical workflow unless absolutely necessary!**
 
+0. [Create a repo from the
+   template](https://github.com/jstrieb/ctf-collab-template/generate). Many of
+   the following links will only work from within your copy of the repository.
+   Creating a copy only works for users logged into GitHub.
 1. [Sign up for ngrok](https://dashboard.ngrok.com/get-started/setup).
 2. [Copy your ngrok
    Authtoken](https://dashboard.ngrok.com/auth/your-authtoken).
