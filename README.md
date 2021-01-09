@@ -150,9 +150,6 @@ are unable to install software on the computer they are using. For example,
 someone who wants to participate in a CTF competition, but is using
 shared computers in a library or a school computer lab.
 
-If this doesn't approximately describe you, please don't use the project – let
-the resources be used by someone with greater need.
-
 ## Be a Good Citizen
 
 This project uses generously-offered, free resources in a way that was likely
