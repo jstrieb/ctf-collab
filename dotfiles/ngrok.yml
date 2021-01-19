@@ -15,3 +15,7 @@ tunnels:
     proto: tcp
     addr: 3389
     inspect: false
+  guac:
+    proto: http
+    addr: 8080
+    inspect: false

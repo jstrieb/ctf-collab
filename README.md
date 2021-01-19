@@ -132,7 +132,8 @@ doesn't require downloading Tor, but it does require signing up for ngrok.
      `NGROK_TOKEN` under the [Secrets](../../settings/secrets/actions) settings
      area. It will be saved here and used automatically.
 5. View the output; wait for it to print the connection information.
-6. Paste the connection link into your [remote desktop (RDP)
+6. Connect to the HTTP link in your browser or paste the connection link into
+   your [remote desktop (RDP)
    client](https://en.wikipedia.org/wiki/Remote_Desktop_Protocol).
    - On Windows, press the start button and search for "Remote Desktop
      Connection" – the client should be installed by default.

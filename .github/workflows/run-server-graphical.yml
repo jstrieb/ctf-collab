@@ -123,6 +123,54 @@ jobs:
           sudo apt --yes install xrdp
           sudo systemctl enable xrdp
 
+      - name: Install Apache Guacamole
+        run: |
+          # Install Apache Guacamole server
+          cd
+          sudo apt-get install \
+            libcairo2-dev \
+            libjpeg-turbo8-dev \
+            libpng-dev \
+            libtool-bin \
+            libossp-uuid-dev \
+            freerdp2-dev \
+            libpango1.0-dev \
+            libssh2-1-dev \
+            libssl-dev
+          wget \
+            -O "guacamole-server-1.3.0.tar.gz" \
+            "http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/1.3.0/source/guacamole-server-1.3.0.tar.gz"
+          tar -xzf guacamole-server-1.3.0.tar.gz
+          cd guacamole-server-1.3.0
+          ./configure
+          make
+          sudo make install
+          sudo ldconfig
+
+          # Install Apache guacamole authentication
+          cd
+          sudo mkdir -p /etc/guacamole
+          echo '
+          <user-mapping>
+              <authorize username="runner" password="ctf">
+                  <protocol>rdp</protocol>
+                  <param name="hostname">localhost</param>
+                  <param name="port">3389</param>
+                  <param name="password">ctf</param>
+              </authorize>
+          </user-mapping>
+          ' | sudo tee /etc/guacamole/user-mapping.xml
+          guacd
+
+          # Install Apache Tomcat to run Guacamole with, and Guacamole client
+          sudo apt-get install \
+            tomcat9 \
+            default-jdk
+          sudo wget \
+            -O "/var/lib/tomcat9/webapps/guacamole-1.3.0.war" \
+            "http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/1.3.0/binary/guacamole-1.3.0.war"
+          sudo service tomcat9 retart || sudo service tomcat9 start
+
       - name: Install ngrok and run in the background as a daemon
         run: |
           # Only proceed if there is a user-supplied authtoken for ngrok.
@@ -159,7 +207,7 @@ jobs:
             -- \
               start \
               -config ~/ngrok.yml \
-              rdp
+              rdp guac
 
       - name: Display connection information
         run: |
@@ -182,6 +230,7 @@ jobs:
               | grep -v "null" \
               | tr -d '"' \
               | sed 's/tcp:\/\/\(.*\)/\1/g' \
+              | sed 's/^http\(.*\)/http\1\/guacamole-1.3.0/g' \
               | sort
           fi
 
