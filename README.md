@@ -68,26 +68,30 @@ doesn't require downloading Tor, but it does require signing up for ngrok.
 
 ## Once Connected
 
-- By default, the collaborative environment uses `tmux` with <kbd>Ctrl +
-  A</kbd> as the "prefix," and a few other custom keys that can be viewed in
-  [.tmux.conf](dotfiles/.tmux.conf)
+- By default, the collaborative environment uses `tmux` with <kbd>Ctrl</kbd> +
+  <kbd>A</kbd> as the "prefix," and a few other custom keys that can be viewed
+  in [.tmux.conf](dotfiles/.tmux.conf)
   - Read a [good introduction to
     `tmux`](https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/)
-  - Press <kbd>Ctrl + A</kbd> and then <kbd>c</kbd> to open a new window
-  - Press <kbd>Ctrl + A</kbd> and then <kbd>n</kbd> to go to the next window
-    and <kbd>Ctrl + A</kbd> and then <kbd>p</kbd> to go to the previous window
-  - Press <kbd>Ctrl + A</kbd> and then <kbd>|</kbd> to split the current pane
-    vertically (this is a vertical bar "|" – not the letter "L" or "i")
-  - Press <kbd>Ctrl + A</kbd> and then <kbd>S</kbd> to split the current pane
-    horizontally (this is a *capitalized* "S" – `tmux` cares about
+  - Press <kbd>Ctrl</kbd> + <kbd>A</kbd> and then <kbd>c</kbd> to open a new
+    window
+  - Press <kbd>Ctrl</kbd> + <kbd>A</kbd> and then <kbd>n</kbd> to go to the
+    next window and <kbd>Ctrl</kbd> + <kbd>A</kbd> and then <kbd>p</kbd> to go
+    to the previous window
+  - Press <kbd>Ctrl</kbd> + <kbd>A</kbd> and then <kbd>|</kbd> to split the
+    current pane vertically (this is a vertical bar "|" – not the letter "L" or
+    "i")
+  - Press <kbd>Ctrl</kbd> + <kbd>A</kbd> and then <kbd>S</kbd> to split the
+    current pane horizontally (this is a *capitalized* "S" – `tmux` cares about
     capitalization)
-  - Press <kbd>Ctrl + A</kbd> and then one of the arrow keys to move to the
-    pane in that direction
+  - Press <kbd>Ctrl</kbd> + <kbd>A</kbd> and then one of the arrow keys to move
+    to the pane in that direction
 - By default, `tmux` adjusts the size of a window to accommodate the smallest
   viewer
   - Every window is the same size for all viewers, at all times
   - To make the window adjust to the largest client instead of the smallest,
-    press <kbd>Ctrl + A</kbd> and then <kbd>G</kbd> (must be capital "G")
+    press <kbd>Ctrl</kbd> + <kbd>A</kbd> and then <kbd>G</kbd> (must be capital
+    "G")
   - Be careful! This will mean that some of the window is difficult or
     impossible to see for the viewer with the smaller client
 - Use the `quit` command to terminate the server for all connected users
