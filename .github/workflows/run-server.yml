@@ -226,7 +226,7 @@ jobs:
           # Wait... This process will be killed to end the Action. Return a
           # non-failure exit code in any case so that there are no unnecessary
           # notifications about a failed Actions workflow.
-          sleep 6h || true
+          sleep 24h || true
 
 
       - name: Clean up
