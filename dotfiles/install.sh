@@ -74,3 +74,15 @@ if $CONFIGURE_VIM; then
 cat .vimrc >> ~/.vimrc
 
 fi # $CONFIGURE_VIM
+
+
+
+###############################################################################
+# Configure GDB
+###############################################################################
+
+if $CONFIGURE_GDB; then
+
+cat .gdbinit >> ~/.gdbinit
+
+fi # $CONFIGURE_GDB
