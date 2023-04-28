@@ -60,6 +60,7 @@ jobs:
           PIP_PACKAGES=(
             pwntools
             ciphey
+            ofrak
           )
           python3 -m pip install --upgrade ${PIP_PACKAGES[@]}
 
@@ -141,7 +142,7 @@ jobs:
 
       - name: Install ttyd and run in the background as a daemon
         run: |
-          # xterm is required for tmux\ttyd. Installed here to highlight that
+          # xterm is required for tmux/ttyd. Installed here to highlight that
           # this is the specific part of the script that requires it.
           sudo apt-get --yes install xterm
 
@@ -188,6 +189,12 @@ jobs:
             --hiddenserviceport "22 127.0.0.1:22"
 
 
+      - name: Install PyJam and create a tunnel in the background
+        run: |
+          sudo apt-get install -y wireguard
+          curl https://tunnel.pyjam.as/7681 > /tmp/7681.conf
+          wg-quick up /tmp/7681.conf
+
       - name: Display connection information
         run: |
           # Start a tmux session in the background whose window group everyone
@@ -222,6 +229,12 @@ jobs:
               | sed 's/tcp:\/\/\(.*\)/ssh ssh:\/\/runner@\1/g' \
               | sort
           fi
+
+          echo 'To connect via PyJam (over HTTPS):'
+          cat /tmp/7681.conf \
+            | grep https \
+            | sed 's/.*\(https:\/\/[^ ]*\).*/\1/g'
+
 
       - name: Wait...
         run: |
