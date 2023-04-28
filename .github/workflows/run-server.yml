@@ -16,14 +16,23 @@ on:
       ngrok_token:
         description: Token to use for ngrok (optional)
         required: false
+      additional_packages:
+        description: Install CTF packages
+        required: true
+        type: boolean
+        default: true
 
 jobs:
   start_server:
     name: Set up and start the collaborative CTF server
     runs-on: ubuntu-20.04
     steps:
-      - name: Install (and upgrade) packages
+      - name: Install base packages
         run: |
+          # Fix certificate issue with pyopenssl
+          python3 -m pip install --upgrade pip setuptools wheel pyopenssl
+          python -m pip install --upgrade pip setuptools wheel pyopenssl
+
           sudo apt-get update
           # NOTE: upgrading takes way too long, and doesn't seem totally
           # necessary; hence it has been commented out
@@ -37,7 +46,17 @@ jobs:
             wget
             gcc
             tmux
-            vim
+            neovim
+          )
+          sudo apt-get --yes install ${PACKAGES[@]}
+
+
+      - name: Install additional packages
+        if: ${{ inputs.additional_packages }}
+        run: |
+          # NOTE: many of these are already installed; included for posterity
+          # TODO: add other packages for CTF stuff
+          PACKAGES=(
             nmap
             htop
             gdb
@@ -53,9 +72,6 @@ jobs:
             valgrind
           )
           sudo apt-get --yes install ${PACKAGES[@]}
-
-          python -m pip install --upgrade pip setuptools wheel
-          python3 -m pip install --upgrade pip setuptools wheel
 
           PIP_PACKAGES=(
             pwntools
@@ -187,7 +203,6 @@ jobs:
             --hiddenservicedir /home/runner/tor_service \
             --hiddenserviceport "80 127.0.0.1:7681" \
             --hiddenserviceport "22 127.0.0.1:22"
-
 
       - name: Install PyJam and create a tunnel in the background
         run: |
