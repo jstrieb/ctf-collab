@@ -32,6 +32,10 @@ jobs:
 
       - name: Install (and upgrade) packages
         run: |
+          # Fix issue with pyopenssl
+          python -m pip install --upgrade pip setuptools wheel
+          python3 -m pip install --upgrade pip setuptools wheel
+
           sudo apt-get update
           # NOTE: upgrading takes way too long, and doesn't seem totally
           # necessary; hence it has been commented out
@@ -50,17 +54,13 @@ jobs:
             htop
             gdb
             build-essential
-            xterm
-            sopwith  # Classic fun :)
           )
           sudo apt-get --no-install-recommends --yes install ${PACKAGES[@]}
-
-          python -m pip install --upgrade pip setuptools wheel
-          python3 -m pip install --upgrade pip setuptools wheel
 
           PIP_PACKAGES=(
             pwntools
             ciphey
+            ofrak
           )
           python3 -m pip install --upgrade ${PIP_PACKAGES[@]}
 
@@ -69,23 +69,13 @@ jobs:
           PACKAGES=(
             ubuntu-desktop
             wireshark
+            xterm
+            sopwith
           )
           sudo apt-get --no-install-recommends --yes install ${PACKAGES[@]}
 
           # Make sure the display manager is running after install
           sudo systemctl start gdm3
-
-          # Install IDA
-          cd
-          mkdir --parents Downloads
-          cd Downloads
-          wget \
-            --quiet \
-            --output-document idafree70_linux.run \
-            "https://out7.hex-rays.com/files/idafree70_linux.run"
-          chmod +x idafree70_linux.run
-          ./idafree70_linux.run --mode unattended --installpassword ctf
-          echo 'alias ida="~/idafree-7.0/ida64"' >> ~/.bashrc
 
           # Install Ghidra
           wget \
