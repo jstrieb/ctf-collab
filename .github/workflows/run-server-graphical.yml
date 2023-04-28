@@ -216,6 +216,12 @@ jobs:
               -config ~/ngrok.yml \
               rdp guac
 
+      - name: Install PyJam and create a tunnel in the background
+        run: |
+          sudo apt-get install -y wireguard
+          curl https://tunnel.pyjam.as/7681 > /tmp/7681.conf
+          wg-quick up /tmp/7681.conf
+
       - name: Display connection information
         run: |
           echo Waiting for things to start up...
@@ -239,7 +245,14 @@ jobs:
               | sed 's/tcp:\/\/\(.*\)/\1/g' \
               | sed 's/^http\(.*\)/http\1\/guacamole-1.3.0/g' \
               | sort
+            echo
           fi
+
+          echo 'To connect via PyJam (over HTTPS):'
+          cat /tmp/7681.conf \
+            | grep https \
+            | sed 's/.*\(https:\/\/[^ ]*\).*/\1\/guacamole-1.3.0/g'
+          echo
 
           # Wait... This process will be killed to end the Action. Return a
           # non-failure exit code in any case so that there are no unnecessary
