@@ -19,6 +19,11 @@ on:
       ngrok_token:
         description: Token to use for ngrok (optional)
         required: false
+      additional_packages:
+        description: Install CTF packages
+        required: true
+        type: boolean
+        default: true
 
 
 jobs:
@@ -30,8 +35,11 @@ jobs:
         run: |
           echo "runner:ctf" | sudo chpasswd
 
-      - name: Install (and upgrade) packages
+
+      - name: Install base packages
         run: |
+          set -eux
+
           # Fix issue with pyopenssl
           python -m pip install --upgrade pip setuptools wheel
           python3 -m pip install --upgrade pip setuptools wheel
@@ -50,6 +58,21 @@ jobs:
             gcc
             tmux
             vim
+          )
+          sudo apt-get --no-install-recommends --yes install ${PACKAGES[@]}
+
+          # Install graphical desktop and make sure the display manager is
+          # running after install
+          sudo apt-get --no-install-recommends --yes install ubuntu-desktop
+          sudo systemctl start gdm3
+
+
+      - name: Install (and upgrade) packages
+        if: ${{ inputs.additional_packages }}
+        run: |
+          # NOTE: many of these are already installed; included for posterity
+          # TODO: add other packages for CTF stuff
+          PACKAGES=(
             nmap
             htop
             gdb
@@ -64,18 +87,16 @@ jobs:
           )
           python3 -m pip install --upgrade ${PIP_PACKAGES[@]}
 
+
       - name: Install (and upgrade) graphical packages
+        if: ${{ inputs.additional_packages }}
         run: |
           PACKAGES=(
-            ubuntu-desktop
             wireshark
             xterm
             sopwith
           )
           sudo apt-get --no-install-recommends --yes install ${PACKAGES[@]}
-
-          # Make sure the display manager is running after install
-          sudo systemctl start gdm3
 
           # Install Ghidra
           wget \
@@ -178,8 +199,7 @@ jobs:
             NGROK_AUTHTOKEN="${{ secrets.NGROK_TOKEN }}"
           fi
           if [ -z "$NGROK_AUTHTOKEN" ]; then
-            echo ngrok authtoken required!
-            exit 1
+            exit 0
           fi
 
           # Add the authtoken to the ngrok configuration file
@@ -209,8 +229,8 @@ jobs:
       - name: Install PyJam and create a tunnel in the background
         run: |
           sudo apt-get install -y wireguard
-          curl https://tunnel.pyjam.as/7681 > /tmp/7681.conf
-          wg-quick up /tmp/7681.conf
+          curl https://tunnel.pyjam.as/8080 > /tmp/8080.conf
+          wg-quick up /tmp/8080.conf
 
       - name: Display connection information
         run: |
@@ -239,9 +259,9 @@ jobs:
           fi
 
           echo 'To connect via PyJam (over HTTPS):'
-          cat /tmp/7681.conf \
+          cat /tmp/8080.conf \
             | grep https \
-            | sed 's/.*\(https:\/\/[^ ]*\).*/\1\/guacamole-1.3.0/g'
+            | sed 's/.*\(https:\/\/[^ ]*\).*/\1guacamole-1.3.0/g'
           echo
 
           # Wait... This process will be killed to end the Action. Return a
