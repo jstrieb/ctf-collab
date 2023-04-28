@@ -53,7 +53,7 @@ jobs:
             xterm
             sopwith  # Classic fun :)
           )
-          sudo apt-get --yes install ${PACKAGES[@]}
+          sudo apt-get --no-install-recommends --yes install ${PACKAGES[@]}
 
           python -m pip install --upgrade pip setuptools wheel
           python3 -m pip install --upgrade pip setuptools wheel
@@ -70,7 +70,7 @@ jobs:
             ubuntu-desktop
             wireshark
           )
-          sudo apt-get --yes install ${PACKAGES[@]}
+          sudo apt-get --no-install-recommends --yes install ${PACKAGES[@]}
 
           # Make sure the display manager is running after install
           sudo systemctl start gdm3
@@ -120,14 +120,19 @@ jobs:
 
       - name: Install RDP server
         run: |
-          sudo apt --yes install xrdp
+          pushd /tmp
+          wget "https://c-nergy.be/downloads/xRDP/xrdp-installer-1.4.6.zip"
+          unzip xrdp-installer-1.4.6.zip 
+          chmod +x xrdp-installer-1.4.6.sh 
+          ./xrdp-installer-1.4.6.sh -s
+          pulseaudio -k || true
           sudo systemctl enable xrdp
 
       - name: Install Apache Guacamole
         run: |
           # Install Apache Guacamole server
           cd
-          sudo apt-get install \
+          sudo apt-get install --no-install-recommends --yes \
             libcairo2-dev \
             libjpeg-turbo8-dev \
             libpng-dev \
